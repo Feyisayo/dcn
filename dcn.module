@@ -21,6 +21,13 @@ function dcn_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
+  $paths['dcn/list'] = array(
+    'title' => 'View participants',
+    'page callback' => 'dcn_list',
+    'access callback' => TRUE,
+    //'access arguments' =>
+    'type' => MENU_NORMAL_ITEM,
+  );
   return $paths;
 }
 
@@ -89,6 +96,9 @@ function dcn_form_validate($form, &$form_state) {
 
 /**
  * Submission callback for dcn_form().
+ *
+ * A Drupal database abstraction API function is used to insert the data.
+ * @see https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_insert/7
  */
 function dcn_form_submit($form, &$form_state) {
   $data = array(
@@ -96,7 +106,41 @@ function dcn_form_submit($form, &$form_state) {
     'email' => $form_state['values']['email'],
     'phone' => $form_state['values']['telephone'],
   );
+
   db_insert('dcn')->fields($data)->execute();
 
   drupal_set_message(t('Participant successfully added'));
+}
+
+/**
+ * Displays a table of participants.
+ *
+ * Menu callback function that displays the list of participants along with
+ * links to edit or delete on each record.
+ * A Drupal database abstraction API function is used to select records from the
+ * database.
+ *
+ * @see https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_select/7
+ */
+function dcn_list() {
+  $participants = db_select('dcn')->fields('dcn')->execute()->fetchAll();
+  
+  if (empty($participants)) {
+    return array(
+      '#type' => 'markup',
+      '#markup' => '<p>No Contributions found</p>'
+    );
+  }
+  
+  // Create the table header.
+  $header = array(t('ID'), t('Name'), t('Email'), t('Phone'));
+  // Create the table rows.  
+  $rows = array();
+  $rows = array();
+  foreach ($participants as $p) {
+    // Sanitize the data before handing it off to the theme layer.
+    $rows[] = array_map('check_plain', (array) $p);
+  }
+  
+  return theme('table', array('header' => $header, 'rows' => $rows));
 }
