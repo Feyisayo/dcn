@@ -1,0 +1,102 @@
+<?php
+/**
+ * @file
+ * Collects Drupal Camp Nigeria 2015 participant details.
+ */
+
+/**
+ * Implements hook_menu().
+ *
+ * Returns all the paths that this module will respond to.
+ * @see https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_menu/7
+ */
+function dcn_menu() {
+  $paths = array();
+  $paths['dcn/add'] = array(
+    'title' => 'Add new participant',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dcn_form'),
+    'access callback' => TRUE,
+    //'access arguments' =>
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $paths;
+}
+
+/**
+ * Form builder callback.
+ *
+ * This function is used to create a form
+ *
+ * @param array $form
+ *   This represents the HTML structure of the form
+ *
+ * @param array $form_state
+ *   This represents the state of the form ie the contents of the elements,
+ *   which button was clicked etc.
+ *
+ * @return array
+ *   $form will be returned. The function will fill it with the desired HTML
+ *   structure.
+ * @see https://www.drupal.org/node/717722
+ */
+function dcn_form($form, &$form_state) {
+  $form = array();
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#description' => t('Full name of participant'),
+    '#maxlength' => 255,
+    '#required' => TRUE,
+  );
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('email'),
+    '#description' => t('Email address of participant'),
+    '#maxlength' => 255,
+    '#required' => TRUE,
+  );
+  $form['telephone'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Phone'),
+    '#description' => t('Phone number(s) of participant'),
+    '#maxlength' => 255,
+    '#required' => TRUE,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}
+
+/**
+ * Validation callback for dcn_form().
+ */
+function dcn_form_validate($form, &$form_state) {
+  // Validate the email address.
+  if (!filter_var($form_state['values']['email'], FILTER_VALIDATE_EMAIL)) {
+    form_set_error('email', t('Enter a valid email address'));
+  }
+
+  // Make the phone number contains only numbers, hyphen and parentheses.
+  if (!preg_match('/^[\d\(\)\-]+$/', $form_state['values']['telephone'])) {
+    form_set_error('phone', t('Your phone number contain only numbers, hyphens and parentheses'));
+  }
+}
+
+/**
+ * Submission callback for dcn_form().
+ */
+function dcn_form_submit($form, &$form_state) {
+  $data = array(
+    'name' => $form_state['values']['name'],
+    'email' => $form_state['values']['email'],
+    'phone' => $form_state['values']['telephone'],
+  );
+  db_insert('dcn')->fields($data)->execute();
+
+  drupal_set_message(t('Participant successfully added'));
+}

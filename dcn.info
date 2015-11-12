@@ -1,0 +1,9 @@
+name = Drupal Camp Nigeria 2015 Participants
+description = The modules collect details of participants in Drupal Camp Nigeria 2015
+package = Drupal Camp Nigeria
+core = 7.x
+version = 1.0
+
+;See https://www.drupal.org/node/542202
+;dependencies[] = rules
+;dependencies[] = views

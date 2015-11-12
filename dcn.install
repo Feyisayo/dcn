@@ -1,0 +1,48 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions.
+ */
+
+/**
+ * Implements hook_schema().
+ * 
+ * @see https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_schema/7
+ */
+function dcn_schema() {
+  $schema = array();
+  $schema['dcn'] = array(
+    'description' => 'Table to hold Drupal Camp Nigeria participant info',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key for the participants',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The name of the participant',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'email' => array(
+        'description' => "The participant's email",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'phone' => array(
+        'description' => "The participant's phone",
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
