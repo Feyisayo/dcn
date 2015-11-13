@@ -35,7 +35,7 @@ function dcn_menu() {
     'access arguments' => array('delete participants'),
     'type' => MENU_LOCAL_TASK,
   );
-  
+
   $paths['dcn/list'] = array(
     'title' => 'View participants',
     'page callback' => 'dcn_list',
@@ -142,7 +142,7 @@ function dcn_form_validate($form, &$form_state) {
 /**
  * Submission callback for dcn_form().
  *
- * A Drupal database abstraction API function is used to insert the data.
+ * Drupal's database abstraction API functions are used to insert and add data.
  * @see https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_insert/7
  */
 function dcn_form_submit($form, &$form_state) {
@@ -156,7 +156,7 @@ function dcn_form_submit($form, &$form_state) {
       ->fields($data)
       ->condition('id', $form_state['values']['pid'], '=')
       ->execute();
-      drupal_set_message(t('Participant successfully updated'));
+    drupal_set_message(t('Participant successfully updated'));
   } else {
     db_insert('dcn')->fields($data)->execute();
     drupal_set_message(t('Participant successfully added'));
@@ -200,7 +200,7 @@ function dcn_list() {
 
 /**
  * Deletes a participant.
- * 
+ *
  * @param int $pid
  *   ID of the participant to delete
  */
@@ -208,7 +208,7 @@ function dcn_delete($pid) {
   db_delete('dcn')
     ->condition('id', $pid, '=')
     ->execute();
-  
+
   drupal_set_message(t('Participant successfully deleted'));
   drupal_goto('dcn/list');
 }
@@ -218,15 +218,15 @@ function dcn_delete($pid) {
  */
 function dcn_permission() {
   return array(
-    'add participants' =>  array(
+    'add participants' => array(
       'title' => t('Add Participants'),
     ),
 
-    'edit participants' =>  array(
+    'edit participants' => array(
       'title' => t('Edit Participants'),
     ),
-    
-    'delete participants' =>  array(
+
+    'delete participants' => array(
       'title' => t('Delete Participants'),
       'restrict access' => TRUE,
     ),
