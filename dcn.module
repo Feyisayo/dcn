@@ -22,7 +22,7 @@ function dcn_menu() {
   );
 
   $paths['dcn/%/edit'] = array(
-    'title' => 'Add new participant',
+    'title' => 'Edit participant',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dcn_form', 1),
     'access callback' => TRUE,
@@ -30,6 +30,15 @@ function dcn_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
+  $paths['dcn/%/delete'] = array(
+    'title' => 'Delete participant',
+    'page callback' => 'dcn_delete',
+    'page arguments' => array(1),
+    'access callback' => TRUE,
+    //'access arguments' =>
+    'type' => MENU_LOCAL_TASK,
+  );
+  
   $paths['dcn/list'] = array(
     'title' => 'View participants',
     'page callback' => 'dcn_list',
@@ -186,8 +195,24 @@ function dcn_list() {
   $rows = array();
   foreach ($participants as $p) {
     $edit_link = l(t('Edit'), 'dcn/' . $p->id . '/edit');
-    $rows[] = (array) $p + array($edit_link . ' Delete');
+    $delete_link = l(t('Delete'), 'dcn/' . $p->id . '/delete');
+    $rows[] = (array) $p + array($edit_link . '&nbsp;&nbsp;' . $delete_link);
   }
 
   return theme('table', array('header' => $header, 'rows' => $rows));
+}
+
+/**
+ * Deletes a participant.
+ * 
+ * @param int $pid
+ *   ID of the participant to delete
+ */
+function dcn_delete($pid) {
+  db_delete('dcn')
+    ->condition('id', $pid, '=')
+    ->execute();
+  
+  drupal_set_message(t('Participant successfully deleted'));
+  drupal_goto('dcn/list');
 }
