@@ -16,8 +16,7 @@ function dcn_menu() {
     'title' => 'Add new participant',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dcn_form'),
-    'access callback' => TRUE,
-    //'access arguments' =>
+    'access arguments' => array('add participants'),
     'type' => MENU_NORMAL_ITEM,
   );
 
@@ -25,8 +24,7 @@ function dcn_menu() {
     'title' => 'Edit participant',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('dcn_form', 1),
-    'access callback' => TRUE,
-    //'access arguments' =>
+    'access arguments' => array('edit participants'),
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -34,8 +32,7 @@ function dcn_menu() {
     'title' => 'Delete participant',
     'page callback' => 'dcn_delete',
     'page arguments' => array(1),
-    'access callback' => TRUE,
-    //'access arguments' =>
+    'access arguments' => array('delete participants'),
     'type' => MENU_LOCAL_TASK,
   );
   
@@ -43,7 +40,6 @@ function dcn_menu() {
     'title' => 'View participants',
     'page callback' => 'dcn_list',
     'access callback' => TRUE,
-    //'access arguments' =>
     'type' => MENU_NORMAL_ITEM,
   );
   return $paths;
@@ -215,4 +211,24 @@ function dcn_delete($pid) {
   
   drupal_set_message(t('Participant successfully deleted'));
   drupal_goto('dcn/list');
+}
+
+/**
+ * Implements hook_permission().
+ */
+function dcn_permission() {
+  return array(
+    'add participants' =>  array(
+      'title' => t('Add Participants'),
+    ),
+
+    'edit participants' =>  array(
+      'title' => t('Edit Participants'),
+    ),
+    
+    'delete participants' =>  array(
+      'title' => t('Delete Participants'),
+      'restrict access' => TRUE,
+    ),
+  );
 }
