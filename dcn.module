@@ -21,6 +21,15 @@ function dcn_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
+  $paths['dcn/%/edit'] = array(
+    'title' => 'Add new participant',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dcn_form', 1),
+    'access callback' => TRUE,
+    //'access arguments' =>
+    'type' => MENU_LOCAL_TASK,
+  );
+
   $paths['dcn/list'] = array(
     'title' => 'View participants',
     'page callback' => 'dcn_list',
@@ -43,19 +52,47 @@ function dcn_menu() {
  *   This represents the state of the form ie the contents of the elements,
  *   which button was clicked etc.
  *
+ * @param int $id
+ *   Optional ID of the record to be editted
+ *
  * @return array
  *   $form will be returned. The function will fill it with the desired HTML
  *   structure.
  * @see https://www.drupal.org/node/717722
  */
-function dcn_form($form, &$form_state) {
+function dcn_form($form, &$form_state, $id = NULL) {
+  $info = array();
+  if ($id != NULL && is_numeric($id)) {
+    // Fetch the participant.
+    $participant = db_select('dcn')
+      ->fields('dcn')
+      ->condition('id', $id, '=')
+      ->execute()->fetchAllAssoc('id');
+    if (empty($participant)) {
+      return array(
+        '#type' => 'markup',
+        '#markup' => "<p>Participant with ID $id not found</p>",
+      );
+    } else {
+      $info = (array) $participant[$id];
+    }
+  }
+
   $form = array();
+
+  // This will hold the participant ID and will only have a value if we are
+  // editing an existing record.
+  $form['pid'] = array(
+    '#type' => 'hidden',
+    '#value' => empty($info) ? '' : $id,
+  );
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Name'),
     '#description' => t('Full name of participant'),
     '#maxlength' => 255,
     '#required' => TRUE,
+    '#default_value' => empty($info) ? '' : $info['name'],
   );
   $form['email'] = array(
     '#type' => 'textfield',
@@ -63,6 +100,7 @@ function dcn_form($form, &$form_state) {
     '#description' => t('Email address of participant'),
     '#maxlength' => 255,
     '#required' => TRUE,
+    '#default_value' => empty($info) ? '' : $info['email'],
   );
   $form['telephone'] = array(
     '#type' => 'textfield',
@@ -70,7 +108,9 @@ function dcn_form($form, &$form_state) {
     '#description' => t('Phone number(s) of participant'),
     '#maxlength' => 255,
     '#required' => TRUE,
+    '#default_value' => empty($info) ? '' : $info['phone'],
   );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
@@ -106,10 +146,16 @@ function dcn_form_submit($form, &$form_state) {
     'email' => $form_state['values']['email'],
     'phone' => $form_state['values']['telephone'],
   );
-
-  db_insert('dcn')->fields($data)->execute();
-
-  drupal_set_message(t('Participant successfully added'));
+  if ($form_state['values']['pid']) {
+    db_update('dcn')
+      ->fields($data)
+      ->condition('id', $form_state['values']['pid'], '=')
+      ->execute();
+      drupal_set_message(t('Participant successfully updated'));
+  } else {
+    db_insert('dcn')->fields($data)->execute();
+    drupal_set_message(t('Participant successfully added'));
+  }
 }
 
 /**
@@ -123,24 +169,25 @@ function dcn_form_submit($form, &$form_state) {
  * @see https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_select/7
  */
 function dcn_list() {
-  $participants = db_select('dcn')->fields('dcn')->execute()->fetchAll();
-  
+  $participants = db_select('dcn')
+    ->fields('dcn')->execute()->fetchAllAssoc('id');
+
   if (empty($participants)) {
     return array(
       '#type' => 'markup',
-      '#markup' => '<p>No Contributions found</p>'
+      '#markup' => '<p>No participants found</p>',
     );
   }
-  
+
   // Create the table header.
-  $header = array(t('ID'), t('Name'), t('Email'), t('Phone'));
-  // Create the table rows.  
+  $header = array(t('ID'), t('Name'), t('Email'), t('Phone'), t('Operations'));
+  // Create the table rows.
   $rows = array();
   $rows = array();
   foreach ($participants as $p) {
-    // Sanitize the data before handing it off to the theme layer.
-    $rows[] = array_map('check_plain', (array) $p);
+    $edit_link = l(t('Edit'), 'dcn/' . $p->id . '/edit');
+    $rows[] = (array) $p + array($edit_link . ' Delete');
   }
-  
+
   return theme('table', array('header' => $header, 'rows' => $rows));
 }
