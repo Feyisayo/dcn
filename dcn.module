@@ -159,6 +159,9 @@ function dcn_form_submit($form, &$form_state) {
     drupal_set_message(t('Participant successfully updated'));
   } else {
     db_insert('dcn')->fields($data)->execute();
+    // Notify the participant by email
+    drupal_mail('dcn', 'participant_added', $data['email'], language_default(), $data);
+
     drupal_set_message(t('Participant successfully added'));
   }
 }
@@ -210,6 +213,7 @@ function dcn_delete($pid) {
     ->execute();
 
   drupal_set_message(t('Participant successfully deleted'));
+
   drupal_goto('dcn/list');
 }
 
@@ -231,4 +235,21 @@ function dcn_permission() {
       'restrict access' => TRUE,
     ),
   );
+}
+
+/**
+ * Implements hook_mail().
+ */
+function dcn_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'participant_added':
+      $message['subject'] = 'You have been added to the participant list';
+      $message['body'] = array(
+        "Dear {$params['name']},",
+        'You have been added to the demo list of participants of Drupal Camp Nigeria 2015. Below are the details:',
+        '<strong>Name</strong>: ' . $params['name'],
+        '<strong>Email</strong>:' . $params['email']
+      );
+      break;
+  }
 }
